@@ -30,15 +30,14 @@ for filename in glob.glob(os.path.join(path, '*.html')):
     html = codecs.open(filename,"r","utf-8")
     soup = BeautifulSoup(html, features="html.parser")
 
+    # cut references off and all the data after reference as well
+    string = str(soup)
+    string1,string2,string3 = string.partition('<span class="mw-headline" id="References">')
+    soup = BeautifulSoup(string1)
+
     # kill all script and style elements
     for script in soup(["script", "style"]):
         script.extract()    # rip it out
-    
-    # cut references off and all the data after reference as well
-    references = soup.find("h2", text=re.compile("References"))
-    for elm in references.find_next_siblings():
-        elm.extract()
-    references.extract()
     
     # get text
     text = soup.get_text()
@@ -67,4 +66,5 @@ df = pd.DataFrame(
     {'name' : Name,
      'hyperlink' : URL})
 
+#%%
 df.to_pickle('/Users/hukaiyu/Desktop/Y3/Y3 Project/name_hyperlinks.pickle')
