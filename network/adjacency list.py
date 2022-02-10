@@ -13,6 +13,7 @@ import glob
 import pandas as pd
 import re
 import numpy as np
+import urllib.parse
 
 # Load the file
 df=pd.read_pickle("/Users/hukaiyu/Desktop/Y3/Y3 Project/name_hyperlinks.pickle")  
@@ -37,6 +38,7 @@ for i in range (len(Source)):
     for j in range (len(df['hyperlink'][i])):
         if type(df['hyperlink'][i][j]) == str:
             last=df['hyperlink'][i][j].split('/')[-1]
+            last=urllib.parse.unquote(last) # convert to utf-8 
             if (last in Source and last != Source[i]): #excluding the physisit himeself/herself
                 name_list.append(last)
     Neighbours.append(name_list)
