@@ -33,7 +33,13 @@ for filename in glob.glob(os.path.join(path, '*.html')):
     # kill all script and style elements
     for script in soup(["script", "style"]):
         script.extract()    # rip it out
-
+    
+    # cut references off and all the data after reference as well
+    references = soup.find("h2", text=re.compile("References"))
+    for elm in references.find_next_siblings():
+        elm.extract()
+    references.extract()
+    
     # get text
     text = soup.get_text()
 
