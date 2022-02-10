@@ -57,7 +57,6 @@ for filename in glob.glob(os.path.join(path, '*.html')):
             break
     
     # find all the anchor tags with "href" 
-    # attribute starting with "https://"
     for link in soup.find_all('a'): #find all the hyperlinks in the website
         # append the actual urls
         url.append(link.get("href"))
