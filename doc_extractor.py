@@ -69,10 +69,31 @@ def doc_extract(path, to_pickle = False):
                 Name.append(line)
                 break
         
+        # cut references/sources/notes/external_links/references_and_notes off 
+
         string = str(soup)
-        string1,string2,string3 = string.partition(
-            '<span class="mw-headline" id="References">')
-        soup = BeautifulSoup(string1)
+        string1,string2,string3 = string.partition('<span class="mw-headline" id="References">')
+
+        if string2!='':
+            soup = BeautifulSoup(string1)
+        else:
+            string1,string2,string3 = string.partition('<span class="mw-headline" id="Sources">')
+
+            if string2!='':
+                soup = BeautifulSoup(string1)
+            else:
+                string1,string2,string3 = string.partition('<span class="mw-headline" id="Notes">')
+
+                if string2!='':
+                    soup = BeautifulSoup(string1)
+                else:
+                    string1,string2,string3 = string.partition('<span class="mw-headline" id="References_and_notes">')
+
+                    if string2!='':
+                        soup = BeautifulSoup(string1)
+                    else:
+                        string1,string2,string3 = string.partition('<span class="mw-headline" id="External_links">')
+                        soup = BeautifulSoup(string1)
     
         # find all the anchor tags with "href" 
         for link in soup.find_all('a'): #find all the hyperlinks in the website
