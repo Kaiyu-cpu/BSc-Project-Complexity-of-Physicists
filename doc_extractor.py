@@ -12,6 +12,7 @@ import os
 import glob
 import pandas as pd
 import urllib.parse
+import re
 
 def doc_extract(path, to_pickle = False):
     '''
@@ -53,47 +54,91 @@ def doc_extract(path, to_pickle = False):
         # drop blank lines
         text = '\n'.join(chunk for chunk in chunks if chunk)
         # remove irrelavent parts to main body texts
-        text = text.replace('-Wikipedia','')
-        text = text.replace('Jump to navigation','')
-        text = text.replace('From Wikipedia, the free encyclopedia','')
-        text = text.replace('Jump to search','')
-        text = text.replace('Wikipedia','')
-        # cut everything after and including references, only keep main body texts
-        head,sep,tail = text.partition('References[edit]')
-        head = head.replace('[edit]','')
-        Text.append(head)
-        
-        #extract the names of the pages
-        for i, line in enumerate(text.splitlines()):
+        head,sep,tail = text.partition('Jump to search')
+        prefix,text = head,tail
+        # extract the names of the pages
+        for i, line in enumerate(prefix.splitlines()):
             if i == 1:
                 Name.append(line)
                 break
         
-        # cut references/sources/notes/external_links/references_and_notes off 
+        # cut everything after and including references, only keep main body texts
+        head,sep,tail = text.partition('Publications[edit]')
+        if sep != '':
+            head = head.replace('[edit]', '')
+        else:
+            head,sep,tail = head.partition('See also[edit]')
 
+            if sep != '':
+                head = head.replace('[edit]', '')
+            else:
+                head, sep, tail = head.partition('Books[edit]')
+
+                if sep != '':
+                    head = head.replace('[edit]','')
+                else:
+                    head,sep,tail = head.partition('Bibliography[edit]')
+
+                    if sep != '':
+                        head = head.replace('[edit]','')
+                    else:
+                        head,sep,tail = head.partition('References[edit]')
+
+                        if sep != '':
+                            head,sep,tail = head.partition('Sources[edit]')
+
+                            if sep != '':
+                                head = head.replace('[edit]','')
+                            else:
+                                head,sep,tail = head.partition('Notes[edit]')
+
+                                if sep != '':
+                                    head = head.replace('[edit]','')
+                                else:
+                                    head,sep,tail = head.partition('References and notes[edit]')
+
+                                    if sep != '':
+                                        head = head.replace('[edit]','')
+                                    else:
+                                        head,sep,tail = head.partition('External links[edit]')
+
+
+        # remove words between 1 and 3
+        shortword= re.compile(r'\W*\b\w{1,2}\b')
+        head = shortword.sub('', head)
+        Text.append(head)
+
+        
+        # cut references/sources/notes/external_links/references_and_notes off 
         string = str(soup)
-        string1,string2,string3 = string.partition('<span class="mw-headline" id="References">')
+        string1,string2,string3 = string.partition(
+            '<span class="mw-headline" id="References">')
 
         if string2!='':
-            soup = BeautifulSoup(string1)
+            soup = BeautifulSoup(string1,features="html.parser")
         else:
-            string1,string2,string3 = string.partition('<span class="mw-headline" id="Sources">')
+            string1,string2,string3 = string.partition(
+                '<span class="mw-headline" id="Sources">')
 
             if string2!='':
-                soup = BeautifulSoup(string1)
+                soup = BeautifulSoup(string1,features="html.parser")
             else:
-                string1,string2,string3 = string.partition('<span class="mw-headline" id="Notes">')
+                string1,string2,string3 = string.partition(
+                    '<span class="mw-headline" id="Notes">')
 
                 if string2!='':
-                    soup = BeautifulSoup(string1)
+                    soup = BeautifulSoup(string1,features="html.parser")
                 else:
-                    string1,string2,string3 = string.partition('<span class="mw-headline" id="References_and_notes">')
+                    string1,string2,string3 = string.partition(
+                        '<span class="mw-headline" id="References_and_notes">')
 
                     if string2!='':
-                        soup = BeautifulSoup(string1)
+                        soup = BeautifulSoup(string1,features="html.parser")
                     else:
-                        string1,string2,string3 = string.partition('<span class="mw-headline" id="External_links">')
-                        soup = BeautifulSoup(string1)
+                        string1,string2,string3 = string.partition(
+                            '<span class="mw-headline" id="External_links">')
+                        soup = BeautifulSoup(string1,features="html.parser")
+    
     
         # find all the anchor tags with "href" 
         for link in soup.find_all('a'): #find all the hyperlinks in the website
@@ -174,8 +219,10 @@ def get_adjacency(df, to_pickle='False'):
     
     
     return df_output
-    
-    
+
+path = "WikipediaPhysicistsTSE210909/output210909/"
+doc_extract(path,to_pickle=True)
+
     
     
     
