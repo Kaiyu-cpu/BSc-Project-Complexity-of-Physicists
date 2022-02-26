@@ -38,7 +38,12 @@ def doc_extract(path, to_pickle = False):
         html = codecs.open(filename,"r","utf-8")
         soup = BeautifulSoup(html, features="html.parser")
         url = []        
-
+        
+        #cut all the sidebars off
+        for sb in soup.find_all(class_='sidebar-content'): 
+            sb.decompose()
+            
+            
         # remove all script and style elements
         for script in soup(["script", "style"]):
             script.extract()    # rip it out
