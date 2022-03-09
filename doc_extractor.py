@@ -37,13 +37,11 @@ def doc_extract(path, to_pickle = False):
         
         html = codecs.open(filename,"r","utf-8")
         soup = BeautifulSoup(html, features="html.parser")
-        url = []        
-        
-        #cut all the sidebars off
-        for sb in soup.find_all(class_='sidebar-content'): 
+        url = []
+
+        for sb in soup.find_all(class_='sidebar-content'):
             sb.decompose()
-            
-            
+
         # remove all script and style elements
         for script in soup(["script", "style"]):
             script.extract()    # rip it out
@@ -111,6 +109,20 @@ def doc_extract(path, to_pickle = False):
         # remove words between 1 and 3
         shortword= re.compile(r'\W*\b\w{1,2}\b')
         head = shortword.sub('', head)
+        # remove the second line from text, which is the summary section for wikipedia,
+        # lots of them are repeated information from main body text
+        zeroth_line = head.find('\n') + 1
+        first_line = head.find('\n', zeroth_line) + 1
+        second_line = head.find('\n', first_line) + 1
+
+        head = head[:first_line] +head[second_line:]
+
+        zeroth_line = head.find('Contents') + 1
+        first_line = head.find('\n', zeroth_line) + 1
+        second_line = head.find('\n', first_line) + 1
+
+        head = head[:zeroth_line] + head[first_line:]
+
         Text.append(head)
 
         

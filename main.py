@@ -14,11 +14,13 @@ from sklearn.cluster import KMeans
 #self-written libraries
 import doc_extractor as de
 import language_processor as lp
-
+from k_optimiser import silhouette, elbow
 
 path = "WikipediaPhysicistsTSE210909/output210909/"
-df = de.doc_extract(path = path)
-df2 = de.get_adjacency(df)
+#df = de.doc_extract(path = path)
+#df2 = de.get_adjacency(df)
+
+df = pd.read_pickle('cleaned_dataframe.pickle')
 stopwords = lp.get_stopwords()
 
 texts = df['Text']
@@ -26,7 +28,7 @@ texts = df['Text']
 tokens = []
 stems = []
 for i in texts:
-    tokens.extend(lp.tokenize(i,stem=False))
+    tokens.extend(lp.tokenize(i,lemmatize=False))
     stems.extend(lp.tokenize(i))
  
 stop_stems =[]    
@@ -37,13 +39,13 @@ word_frame = pd.DataFrame({'words':tokens},index=stems)
 
 
 #define vectorizer parameters
-tfidf_vectorizer = TfidfVectorizer(max_df=0.8, max_features=200000,
+tfidf_vectorizer = TfidfVectorizer(max_df=0.8, max_features=1000000,
                                  min_df=0.2, stop_words=stop_stems,
-                                 use_idf=True, tokenizer=lp.tokenize, ngram_range=(1,3))
+                                 use_idf=True, tokenizer=lp.tokenize, ngram_range=(1,1))
 
 tfidf_matrix = tfidf_vectorizer.fit_transform(texts) #fit the vectorizer to synopses
 
-num_clusters = 14
+num_clusters = 8
 
 terms = tfidf_vectorizer.get_feature_names_out()
 
@@ -73,8 +75,9 @@ cluster_words = []
 for i in range(num_clusters):
     tem_list = []
     for ind in order_centroids[i, :8]: #replace 6 with n words per cluster
-        keyword = word_frame.loc[terms[ind].split(
-            ' ')].values.tolist()[0][0].encode('utf-8','ignore').decode()
+        #keyword = word_frame.loc[terms[ind].split(
+            #' ')].values.tolist()[0][0].encode('utf-8','ignore').decode()
+        keyword = terms[ind]
         tem_list.append(keyword)
     
     cluster_words.append(tem_list)
