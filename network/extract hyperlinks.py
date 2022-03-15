@@ -29,11 +29,39 @@ for filename in glob.glob(os.path.join(path, '*.html')):
     url = []
     html = codecs.open(filename,"r","utf-8")
     soup = BeautifulSoup(html, features="html.parser")
+    
+    #cut all the sidebars off
+    
+    for sb in soup.find_all(class_='sidebar-content'): 
+        sb.decompose()
 
-    # cut references off and all the data after reference as well
+
+    # cut references/sources/notes/external_links/references_and_notes off 
+    
     string = str(soup)
     string1,string2,string3 = string.partition('<span class="mw-headline" id="References">')
-    soup = BeautifulSoup(string1)
+    
+    if string2!='':
+        soup = BeautifulSoup(string1)
+    else:
+        string1,string2,string3 = string.partition('<span class="mw-headline" id="Sources">')
+        
+        if string2!='':
+            soup = BeautifulSoup(string1)
+        else:
+            string1,string2,string3 = string.partition('<span class="mw-headline" id="Notes">')
+            
+            if string2!='':
+                soup = BeautifulSoup(string1)
+            else:
+                string1,string2,string3 = string.partition('<span class="mw-headline" id="References_and_notes">')
+                
+                if string2!='':
+                    soup = BeautifulSoup(string1)
+                else:
+                    string1,string2,string3 = string.partition('<span class="mw-headline" id="External_links">')
+                    soup = BeautifulSoup(string1)
+                
 
     # kill all script and style elements
     for script in soup(["script", "style"]):
